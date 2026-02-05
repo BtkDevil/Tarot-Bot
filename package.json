@@ -1,17 +1,14 @@
 {
   "name": "Tarot-Bot",
   "version": "1.0.0",
-  "description": "Discord bot for tarot card reaction roles",
+  "description": "Bot to limit reactions on tarot card emojis (Sapphire bot integration)",
   "main": "index.js",
-  "type": "commonjs",
   "scripts": {
     "start": "node index.js"
   },
-  "engines": {
-    "node": "18.x"
-  },
+  "author": "YourName",
+  "license": "MIT",
   "dependencies": {
-    "discord.js": "^14.14.0",
-    "dotenv": "^16.3.1"
+    "discord.js": "^14.15.1"
   }
 }
