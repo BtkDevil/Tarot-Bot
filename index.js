@@ -1,3 +1,4 @@
+require("dotenv").config();
 const { Client, GatewayIntentBits, Partials } = require("discord.js");
 
 // ===== CLIENT SETUP =====
@@ -49,7 +50,7 @@ client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
-// ===== REACTION ADD =====
+// ===== REACTION ADD EVENT =====
 client.on("messageReactionAdd", async (reaction, user) => {
   if (user.bot) return;
 
@@ -62,7 +63,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
     }
   }
 
-  // check message id
+  // only specific messages
   if (!MESSAGE_IDS.includes(reaction.message.id)) return;
 
   const emoji = reaction.emoji.name;
@@ -74,7 +75,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
   const role = guild.roles.cache.get(roleId);
   if (!role) return;
 
-  // 🔒 MAX 2 MEMBERS PER ROLE
+  // MAX 2 MEMBERS PER ROLE
   if (role.members.size >= 2) {
     try {
       await user.send("❌ This tarot card has already been claimed.");
@@ -83,14 +84,14 @@ client.on("messageReactionAdd", async (reaction, user) => {
     return;
   }
 
-  // remove other tarot roles from the user
+  // remove other tarot roles
   for (const rId of Object.values(ROLE_MAP)) {
     if (member.roles.cache.has(rId)) {
       await member.roles.remove(rId);
     }
   }
 
-  // add new role
+  // assign new role
   await member.roles.add(role);
 
   try {
@@ -99,5 +100,10 @@ client.on("messageReactionAdd", async (reaction, user) => {
 });
 
 // ===== LOGIN =====
-// Make sure your Railway environment variable is named exactly "TOKEN"
-client.login(process.env.TOKEN);
+const token = process.env.TOKEN;
+if (!token) {
+  console.error("❌ TOKEN is missing! Set your environment variable.");
+  process.exit(1);
+}
+
+client.login(token);
