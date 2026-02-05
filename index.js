@@ -1,32 +1,34 @@
-require("dotenv").config();
-const { Client, GatewayIntentBits, Partials } = require("discord.js");
-const express = require("express"); // optional keep-alive
+require('dotenv').config();
+const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const express = require('express');
+
+// ===== Keep-alive server (optional) =====
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Keep-alive server (optional)
 app.get("/", (req, res) => res.send("Bot is alive!"));
 app.listen(PORT, () => console.log(`Web server running on port ${PORT}`));
 
-// Discord bot setup
+// ===== Discord Bot =====
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.GuildMessages
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions
   ],
   partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
-// ===== MESSAGE IDS =====
+client.once('ready', () => console.log(`✅ Logged in as ${client.user.tag}`));
+
+// ===== Message IDs and Role Mapping =====
 const MESSAGE_IDS = [
   "1468614243703193811",
   "1468617999316553946"
 ];
 
-// ===== EMOJI → ROLE MAP =====
 const ROLE_MAP = {
+  // Message 1
   "🃏": "1454795086582775893",
   "✨": "1454787820710531207",
   "⛈️": "1468305146240045099",
@@ -38,7 +40,7 @@ const ROLE_MAP = {
   "🦁": "1468306375116591165",
   "🕯️": "1468306495010770964",
   "🎡": "1464419940781129798",
-
+  // Message 2
   "⚖️": "1468306710505721959",
   "🙃": "1468306825895084227",
   "☠️": "1464419534541946920",
@@ -52,35 +54,42 @@ const ROLE_MAP = {
   "♾️": "1454795317940588647"
 };
 
-client.once("ready", () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
+// ===== Reaction Handling =====
+client.on('messageReactionAdd', async (reaction, user) => {
+  if (user.bot) return; // Ignore bot reactions
+
+  try {
+    if (reaction.partial) await reaction.fetch();
+    if (!MESSAGE_IDS.includes(reaction.message.id)) return;
+
+    const emoji = reaction.emoji.name;
+    const roleId = ROLE_MAP[emoji];
+    if (!roleId) return;
+
+    const guild = reaction.message.guild;
+    const role = guild.roles.cache.get(roleId);
+    if (!role) return;
+
+    const humanCount = role.members.filter(m => !m.user.bot).size;
+
+    // Check max 1 human per role
+    if (humanCount >= 1) {
+      try { await user.send(`❌ Sorry! 『✧──${role.name}──✧』 has already been claimed.`); } catch {}
+      try { await reaction.users.remove(user.id); } catch {}
+      return;
+    }
+
+    // Give role
+    const member = await guild.members.fetch(user.id);
+    await member.roles.add(role);
+
+    // DM confirmation
+    try { await user.send(`✅ You have successfully claimed 『✧──${role.name}──✧』!`); } catch {}
+
+  } catch (err) {
+    console.error("Reaction error:", err);
+  }
 });
 
-client.on("messageReactionAdd", async (reaction, user) => {
-  if (user.bot) return;
-
-  if (reaction.partial) {
-    try { await reaction.fetch(); } catch { return; }
-  }
-
-  if (!MESSAGE_IDS.includes(reaction.message.id)) return;
-
-  const emoji = reaction.emoji.name;
-  const roleId = ROLE_MAP[emoji];
-  if (!roleId) return;
-
-  const guild = reaction.message.guild;
-  const role = guild.roles.cache.get(roleId);
-  if (!role) return;
-
-  // Count humans who already have this role
-  const humanCount = role.members.filter(m => !m.user.bot).size;
-
-  if (humanCount >= 1) {
-    try { await user.send(`❌ Sorry! 『✧──${role.name}──✧』 has already been claimed.`); } catch {}
-    try { await reaction.users.remove(user.id); } catch {}
-  }
-  // Otherwise, let Sapphire handle the role assignment
-});
-
-client.login(process.env.TOKEN);
+// ===== Bot Login =====
+client.login(process.env.TOKEN).catch(err => console.error("Login failed:", err));
