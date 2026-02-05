@@ -1,5 +1,14 @@
+require("dotenv").config();
 const { Client, GatewayIntentBits, Partials } = require("discord.js");
+const express = require("express"); // optional keep-alive
+const app = express();
+const PORT = process.env.PORT || 3000;
 
+// Keep-alive server (optional)
+app.get("/", (req, res) => res.send("Bot is alive!"));
+app.listen(PORT, () => console.log(`Web server running on port ${PORT}`));
+
+// Discord bot setup
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -48,7 +57,7 @@ client.once("ready", () => {
 });
 
 client.on("messageReactionAdd", async (reaction, user) => {
-  if (user.bot) return; // ignore bots
+  if (user.bot) return;
 
   if (reaction.partial) {
     try { await reaction.fetch(); } catch { return; }
@@ -68,14 +77,10 @@ client.on("messageReactionAdd", async (reaction, user) => {
   const humanCount = role.members.filter(m => !m.user.bot).size;
 
   if (humanCount >= 1) {
-    // DM the user that this card is already claimed
     try { await user.send(`❌ Sorry! 『✧──${role.name}──✧』 has already been claimed.`); } catch {}
-
-    // Remove the reaction since it’s invalid
     try { await reaction.users.remove(user.id); } catch {}
   }
-
-  // Otherwise do nothing, Sapphire handles role assignment
+  // Otherwise, let Sapphire handle the role assignment
 });
 
 client.login(process.env.TOKEN);
