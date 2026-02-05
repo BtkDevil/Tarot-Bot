@@ -1,16 +1,33 @@
 {
-  "name": "Tarot-Bot",
+  "name": "tarot-bot",
   "version": "1.0.0",
+  "description": "Tarot Discord Bot with reaction roles",
   "main": "index.js",
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "scripts": {
     "start": "node index.js"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
-    "discord.js": "^14.14.1",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2"
-  }
+    "discord.js": "^14.14.0",
+    "dotenv": "^16.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR_GITHUB_USERNAME/tarot-bot.git"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "tarot",
+    "roles",
+    "reaction"
+  ],
+  "author": "YOUR_NAME",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/YOUR_GITHUB_USERNAME/tarot-bot/issues"
+  },
+  "homepage": "https://github.com/YOUR_GITHUB_USERNAME/tarot-bot#readme"
 }
